@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { prisma } from "../config/db.js";
+import { inngest } from "../inngest/index.js";
 
 
 // create order
@@ -75,6 +76,13 @@ export const createOrder = async (req: Request, res: Response) => {
             data: { stock: { decrement: item.quantity } }
         })
     }
+
+    // send stock update events for each product in the order
+    for(const item of orderItems){
+        await inngest.send({name: "inventory/stock.updated", data: {productId: item.product}})
+    }
+
+    await inngest.send({name: "order/placed", data: {orderId: order.id}})
 }
 
 
