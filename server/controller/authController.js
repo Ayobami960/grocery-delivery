@@ -9,7 +9,8 @@ const generateToken = (id) => {
 const getAdminStatus = (email) => {
     if (!email)
         return false;
-    const adminEmails = process.env.ADMIM_EMAILS ? process.env.ADMIM_EMAILS.split(",").map((e) => e.trim()
+    const adminEmailEnv = process.env.ADMIN_EMAILS ?? process.env.ADMIM_EMAILS;
+    const adminEmails = adminEmailEnv ? adminEmailEnv.split(",").map((e) => e.trim()
         .toLowerCase()) : [];
     return adminEmails.includes(email.toLowerCase());
 };

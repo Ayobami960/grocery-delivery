@@ -1,9 +1,12 @@
 import { prisma } from "../config/db.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+const getStatusHistory = (statusHistory) => {
+    return Array.isArray(statusHistory) ? statusHistory : [];
+};
 // Generate JWT token
 const generateToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+    return jwt.sign({ id, role: "delivery" }, process.env.JWT_SECRET, { expiresIn: "1d" });
 };
 // Login delivery partner
 // POST /api/delevery/login
@@ -16,6 +19,9 @@ export const loginPartner = async (req, res) => {
             email: email.toLowerCase()
         } });
     if (!partner) {
+        return res.status(401).json({ message: "Invalid email and password" });
+    }
+    if (!partner.isActive) {
         return res.status(403).json({ message: "Your account has been deactivated" });
     }
     const isMatch = await bcrypt.compare(password, partner.password);
@@ -35,7 +41,7 @@ export const getMyDeliveries = async (req, res) => {
         where.status = { in: ["Assigned", "Packed", "Out for Delivery"] };
     }
     else if (status === "completed") {
-        where.status = { in: ["Delivered", "Canelled"] };
+        where.status = { in: ["Delivered", "Cancelled"] };
     }
     const orders = await prisma.order.findMany({
         where,
@@ -63,14 +69,16 @@ export const completeDelivery = async (req, res) => {
     const order = await prisma.order.findFirst({
         where: { id: req.params.id, deliveryPartnerId: req.partner.id }
     });
-    if (!order || order.status === "Cancelled" || order.status ===
-        "Delivered") {
-        return res.status(400).json({ message: "Invalid Request" });
+    if (!order) {
+        return res.status(404).json({ message: "Delivery not found" });
     }
-    if (order.deliveryOtp !== otp) {
-        return res.status(500).json({ message: "Invalid OTP" });
+    if (order.status === "Cancelled" || order.status === "Delivered") {
+        return res.status(400).json({ message: "Delivery is already closed" });
     }
-    const history = order.statusHistory;
+    if (!otp || order.deliveryOtp !== otp) {
+        return res.status(400).json({ message: "Invalid OTP" });
+    }
+    const history = getStatusHistory(order.statusHistory);
     history.push({ status: 'Delivered', note: "Delivered by partner",
         timestamp: new Date()
     });
@@ -87,10 +95,16 @@ export const cancelDelivery = async (req, res) => {
     const order = await prisma.order.findFirst({
         where: { id: req.params.id, deliveryPartnerId: req.partner.id }
     });
+    if (!order) {
+        return res.status(404).json({ message: "Delivery not found" });
+    }
     if (order.status === "Delivered") {
         return res.status(400).json({ message: "Cannot cancel a delivered order" });
     }
-    const history = order.statusHistory;
+    if (order.status === "Cancelled") {
+        return res.status(400).json({ message: "Delivery is already cancelled" });
+    }
+    const history = getStatusHistory(order.statusHistory);
     history.push({ status: "Cancelled", note: reason || "", timestamp: new Date() });
     const updatedOrder = await prisma.order.update({
         where: { id: order.id },
@@ -104,13 +118,25 @@ export const updateDeliveryStatus = async (req, res) => {
     const { status } = req.body;
     const allowedStatuses = ["Packed", "Out for Delivery"];
     if (!allowedStatuses.includes(status)) {
-        return res.status(400).json({ message: "Invalid staus update" });
+        return res.status(400).json({ message: "Invalid status update" });
     }
     const order = await prisma.order.findFirst({
         where: { id: req.params.id, deliveryPartnerId: req.partner.id }
     });
-    const history = order.statusHistory;
-    history.push({ status, note: `Status updted to ${status}`, timestamp: new Date() });
+    if (!order) {
+        return res.status(404).json({ message: "Delivery not found" });
+    }
+    if (order.status === "Delivered" || order.status === "Cancelled") {
+        return res.status(400).json({ message: "Cannot update a closed delivery" });
+    }
+    if (status === "Packed" && order.status !== "Assigned") {
+        return res.status(400).json({ message: "Only assigned deliveries can be marked packed" });
+    }
+    if (status === "Out for Delivery" && order.status !== "Packed") {
+        return res.status(400).json({ message: "Only packed deliveries can be marked out for delivery" });
+    }
+    const history = getStatusHistory(order.statusHistory);
+    history.push({ status, note: `Status updated to ${status}`, timestamp: new Date() });
     const updatedOrder = await prisma.order.update({
         where: { id: order.id },
         data: { status, statusHistory: history }
@@ -121,6 +147,9 @@ export const updateDeliveryStatus = async (req, res) => {
 // PUT /api/delivery/my-deliveries/:id/location
 export const updateLocation = async (req, res) => {
     const { lat, lng } = req.body;
+    if (typeof lat !== "number" || typeof lng !== "number") {
+        return res.status(400).json({ message: "Latitude and longitude are required" });
+    }
     const order = await prisma.order.findFirst({
         where: {
             id: req.params.id,
@@ -128,6 +157,9 @@ export const updateLocation = async (req, res) => {
             status: { in: ['Assigned', "Packed", "Out for Delivery"] }
         }
     });
+    if (!order) {
+        return res.status(404).json({ message: "Active delivery not found" });
+    }
     await prisma.order.update({
         where: { id: order.id },
         data: { liveLocation: { lat, lng, updatedAt: new Date() } }

@@ -5,5 +5,5 @@ export declare const getMyDeliveriesDetail: (req: Request, res: Response) => Pro
 export declare const completeDelivery: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 export declare const cancelDelivery: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 export declare const updateDeliveryStatus: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
-export declare const updateLocation: (req: Request, res: Response) => Promise<void>;
+export declare const updateLocation: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 //# sourceMappingURL=deliveryPartnerController.d.ts.map

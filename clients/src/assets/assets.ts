@@ -128,7 +128,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.118Z",
         updatedAt: "2026-03-24T05:50:11.118Z",
         discount: 10,
-        id: "69c22613ae75a98c7cd13b3b",
+        _id: "69c22613ae75a98c7cd13b3b",
     },
     {
         id: "69c22613ae75a98c7cd13b37",
@@ -147,7 +147,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.118Z",
         updatedAt: "2026-03-24T05:50:11.118Z",
         discount: 7,
-        id: "69c22613ae75a98c7cd13b37",
+        _id: "69c22613ae75a98c7cd13b37",
     },
     {
         id: "69c22613ae75a98c7cd13b3a",
@@ -166,7 +166,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.118Z",
         updatedAt: "2026-03-24T05:50:11.118Z",
         discount: 13,
-        id: "69c22613ae75a98c7cd13b3a",
+        _id: "69c22613ae75a98c7cd13b3a",
     },
     {
         id: "69c22613ae75a98c7cd13b36",
@@ -185,7 +185,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.118Z",
         updatedAt: "2026-03-24T05:50:11.118Z",
         discount: 7,
-        id: "69c22613ae75a98c7cd13b36",
+        _id: "69c22613ae75a98c7cd13b36",
     },
     {
         id: "69c22613ae75a98c7cd13b39",
@@ -204,7 +204,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.118Z",
         updatedAt: "2026-03-24T05:50:11.118Z",
         discount: 14,
-        id: "69c22613ae75a98c7cd13b39",
+        _id: "69c22613ae75a98c7cd13b39",
     },
     {
         id: "69c22613ae75a98c7cd13b38",
@@ -223,7 +223,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.118Z",
         updatedAt: "2026-03-24T05:50:11.118Z",
         discount: 9,
-        id: "69c22613ae75a98c7cd13b38",
+        _id: "69c22613ae75a98c7cd13b38",
     },
     {
         id: "69c22613ae75a98c7cd13b30",
@@ -242,7 +242,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.117Z",
         updatedAt: "2026-03-24T05:50:11.117Z",
         discount: 20,
-        id: "69c22613ae75a98c7cd13b30",
+        _id: "69c22613ae75a98c7cd13b30",
     },
     {
         id: "69c22613ae75a98c7cd13b23",
@@ -261,7 +261,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.117Z",
         updatedAt: "2026-03-24T05:50:11.117Z",
         discount: 12,
-        id: "69c22613ae75a98c7cd13b23",
+        _id: "69c22613ae75a98c7cd13b23",
     },
     {
         id: "69c22613ae75a98c7cd13b2f",
@@ -280,7 +280,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.117Z",
         updatedAt: "2026-03-24T05:50:11.117Z",
         discount: 6,
-        id: "69c22613ae75a98c7cd13b2f",
+        _id: "69c22613ae75a98c7cd13b2f",
     },
     {
         id: "69c22613ae75a98c7cd13b35",
@@ -299,7 +299,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.117Z",
         updatedAt: "2026-03-24T05:50:11.117Z",
         discount: 8,
-        id: "69c22613ae75a98c7cd13b35",
+        _id: "69c22613ae75a98c7cd13b35",
     },
     {
         id: "69c22613ae75a98c7cd13b2d",
@@ -318,7 +318,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.117Z",
         updatedAt: "2026-03-24T05:50:11.117Z",
         discount: 6,
-        id: "69c22613ae75a98c7cd13b2d",
+        _id: "69c22613ae75a98c7cd13b2d",
     },
     {
         id: "69c22613ae75a98c7cd13b28",
@@ -337,7 +337,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.117Z",
         updatedAt: "2026-03-24T05:50:11.117Z",
         discount: 10,
-        id: "69c22613ae75a98c7cd13b28",
+        _id: "69c22613ae75a98c7cd13b28",
     },
     {
         id: "69c22613ae75a98c7cd13b33",
@@ -356,7 +356,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.117Z",
         updatedAt: "2026-03-24T05:50:11.117Z",
         discount: 5,
-        id: "69c22613ae75a98c7cd13b33",
+        _id: "69c22613ae75a98c7cd13b33",
     },
     {
         id: "69c22613ae75a98c7cd13b25",
@@ -375,7 +375,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.117Z",
         updatedAt: "2026-03-24T05:50:11.117Z",
         discount: 10,
-        id: "69c22613ae75a98c7cd13b25",
+        _id: "69c22613ae75a98c7cd13b25",
     },
     {
         id: "69c22613ae75a98c7cd13b31",
@@ -394,7 +394,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.117Z",
         updatedAt: "2026-03-24T05:50:11.117Z",
         discount: 8,
-        id: "69c22613ae75a98c7cd13b31",
+        _id: "69c22613ae75a98c7cd13b31",
     },
     {
         id: "69c22613ae75a98c7cd13b24",
@@ -413,7 +413,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.117Z",
         updatedAt: "2026-03-24T05:50:11.117Z",
         discount: 17,
-        id: "69c22613ae75a98c7cd13b24",
+        _id: "69c22613ae75a98c7cd13b24",
     },
     {
         id: "69c22613ae75a98c7cd13b27",
@@ -432,7 +432,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.117Z",
         updatedAt: "2026-03-24T05:50:11.117Z",
         discount: 6,
-        id: "69c22613ae75a98c7cd13b27",
+        _id: "69c22613ae75a98c7cd13b27",
     },
     {
         id: "69c22613ae75a98c7cd13b34",
@@ -451,7 +451,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.117Z",
         updatedAt: "2026-03-24T05:50:11.117Z",
         discount: 8,
-        id: "69c22613ae75a98c7cd13b34",
+        _id: "69c22613ae75a98c7cd13b34",
     },
     {
         id: "69c22613ae75a98c7cd13b2a",
@@ -470,7 +470,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.117Z",
         updatedAt: "2026-03-24T05:50:11.117Z",
         discount: 7,
-        id: "69c22613ae75a98c7cd13b2a",
+        _id: "69c22613ae75a98c7cd13b2a",
     },
     {
         id: "69c22613ae75a98c7cd13b32",
@@ -489,7 +489,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.117Z",
         updatedAt: "2026-03-24T05:50:11.117Z",
         discount: 7,
-        id: "69c22613ae75a98c7cd13b32",
+        _id: "69c22613ae75a98c7cd13b32",
     },
     {
         id: "69c22613ae75a98c7cd13b2c",
@@ -508,7 +508,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.117Z",
         updatedAt: "2026-03-24T05:50:11.117Z",
         discount: 6,
-        id: "69c22613ae75a98c7cd13b2c",
+        _id: "69c22613ae75a98c7cd13b2c",
     },
     {
         id: "69c22613ae75a98c7cd13b29",
@@ -527,7 +527,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.117Z",
         updatedAt: "2026-03-24T05:50:11.117Z",
         discount: 7,
-        id: "69c22613ae75a98c7cd13b29",
+        _id: "69c22613ae75a98c7cd13b29",
     },
     {
         id: "69c22613ae75a98c7cd13b22",
@@ -546,7 +546,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.117Z",
         updatedAt: "2026-03-24T05:50:11.117Z",
         discount: 7,
-        id: "69c22613ae75a98c7cd13b22",
+        _id: "69c22613ae75a98c7cd13b22",
     },
     {
         id: "69c22613ae75a98c7cd13b21",
@@ -565,7 +565,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.117Z",
         updatedAt: "2026-03-24T05:50:11.117Z",
         discount: 13,
-        id: "69c22613ae75a98c7cd13b21",
+        _id: "69c22613ae75a98c7cd13b21",
     },
     {
         id: "69c22613ae75a98c7cd13b2e",
@@ -584,7 +584,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.117Z",
         updatedAt: "2026-03-24T05:50:11.117Z",
         discount: 7,
-        id: "69c22613ae75a98c7cd13b2e",
+        _id: "69c22613ae75a98c7cd13b2e",
     },
     {
         id: "69c22613ae75a98c7cd13b2b",
@@ -603,7 +603,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.117Z",
         updatedAt: "2026-03-24T05:50:11.117Z",
         discount: 8,
-        id: "69c22613ae75a98c7cd13b2b",
+        _id: "69c22613ae75a98c7cd13b2b",
     },
     {
         id: "69c22613ae75a98c7cd13b26",
@@ -622,7 +622,7 @@ export const dummyProducts = [
         createdAt: "2026-03-24T05:50:11.117Z",
         updatedAt: "2026-03-24T05:50:11.117Z",
         discount: 10,
-        id: "69c22613ae75a98c7cd13b26",
+        _id: "69c22613ae75a98c7cd13b26",
     },
 ];
 

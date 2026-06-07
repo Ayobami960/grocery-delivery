@@ -2,15 +2,17 @@ import { useEffect, useState } from "react";
 import type { Order } from "../types";
 import { Link, useSearchParams } from "react-router";
 import { useCart } from "../context/CartContext";
-import { dummyDashboardOrdersData, statusColors } from "../assets/assets";
+import {  statusColors } from "../assets/assets";
 import Loading from "../components/Loading";
 import { CalendarIcon, ChevronRightIcon, PackageIcon } from "lucide-react";
+import api from "../lib/api";
+import toast from "react-hot-toast";
 
 const MyOrders = () => {
   const currency = import.meta.env.VITE_CURRENCY_SYMBOL || "$";
 
   const [orders, sertOrders] = useState<Order[]>([]);
-  const [loading, SetLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -19,8 +21,16 @@ const MyOrders = () => {
   const { clearCart } = useCart();
 
   const fetchOrders = async () => {
-    sertOrders(dummyDashboardOrdersData as any)
-    SetLoading(false)
+    setLoading(true)
+    try {
+      const params = activeTab !== "all" ? `?status=${activeTab}` : "";
+      const {data} = await api.get(`/orders${params}`)
+      sertOrders(data.orders)
+    } catch (error: any) {
+      toast.error(error.res?.data?.message || error?.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -33,7 +43,7 @@ const MyOrders = () => {
     } else {
       fetchOrders()
     }
-    SetLoading(false)
+    setLoading(false)
   }, [activeTab])
   return (
     <div className="min-h-screen bg-app-cream mb-20">

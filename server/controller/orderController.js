@@ -16,9 +16,12 @@ export const createOrder = async (req, res) => {
     // check if product is in stock
     for (const item of items) {
         const product = productMap[item.product];
-        if (!product || (productMap[item.product])) {
-            return res.status(404).json({
-                message: "Product out of stock"
+        // Fix: Use '?? 0' to safely handle if product.stock is null
+        if (!product || (product.stock ?? 0) < item.quantity) {
+            return res.status(400).json({
+                message: !product
+                    ? `Product not found`
+                    : `Product "${product.name}" is out of stock or insufficient`
             });
         }
     }
@@ -76,7 +79,7 @@ export const getUserOrders = async (req, res) => {
     const { status } = req.query;
     const where = {
         userId: req.user.id,
-        NOT: [{ PaymentMethod: "card", isPaid: false }]
+        NOT: [{ paymentMethod: "card", isPaid: false }] // Fixed lowercase naming bug here too
     };
     if (status && status !== "all") {
         where.status = status;
@@ -107,8 +110,8 @@ export const getOrder = async (req, res) => {
     }
     res.json({ order });
 };
-// GET single order
-// GET /api/orders/:id
+// UPDATE order status
+// PUT /api/orders/:id
 export const updateOrderStatus = async (req, res) => {
     const { status, note } = req.body;
     const order = await prisma.order.findUnique({ where: { id: req.params.id } });
@@ -118,7 +121,7 @@ export const updateOrderStatus = async (req, res) => {
     const history = (Array.isArray(order.statusHistory) ? order.statusHistory : []);
     history.push({
         status, note: note || `Order ${status.toLowerCase()}`,
-        timeStamp: new Date()
+        timestamp: new Date() // Standardized casing to lowercase timestamp matching creation
     });
     const updatedOrder = await prisma.order.update({
         where: { id: req.params.id },

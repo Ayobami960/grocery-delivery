@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router"
-
-import { categoriesData, dummyProducts } from "../assets/assets";
+import { categoriesData } from "../assets/assets";
 import { ChevronDown, Home, SlidersHorizontal, XIcon } from "lucide-react";
 import ProductCard from "../components/Home/ProductCard";
 import Loading from "../components/Loading";
@@ -26,8 +25,7 @@ const Product = () => {
   const fetchProducts = async () => {
     setLoading(true)
 
-       // setProducts(dummyProducts.filter((p) => p.category === category || category === ""));
-
+    
     try {
       const params = new URLSearchParams()
       if(category) params.set('category', category)

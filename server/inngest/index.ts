@@ -1,7 +1,6 @@
 import { cron, Inngest } from "inngest";
 import { prisma } from "../config/db.js";
 import sendEmail from "../config/nodemailer.js";
-import { timeStamp } from "node:console";
 
 const LOW_STOCK_THRESHOLD = 10;
 
@@ -25,8 +24,9 @@ const checkLowStock = inngest.createFunction(
         }
 
         await step.run("send-low-stock-email", async () => {
-            const adminEmails = process.env.ADMIN_EMAILS
-                ? process.env.ADMIN_EMAILS.split(",").map((e) => e.trim())
+            const adminEmailEnv = process.env.ADMIN_EMAILS ?? process.env.ADMIM_EMAILS;
+            const adminEmails = adminEmailEnv
+                ? adminEmailEnv.split(",").map((e) => e.trim())
                 : [];
 
             if (adminEmails.length === 0) return { skipped: true, reason: "No admin emails" };

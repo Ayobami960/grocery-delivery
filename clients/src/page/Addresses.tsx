@@ -1,18 +1,26 @@
 import { useEffect, useState } from "react"
 import type { Address } from "../types"
-import { dummyAddressData } from "../assets/assets";
 import { MapPinIcon, PlusIcon } from "lucide-react";
 import Loading from "../components/Loading";
 import AddressCard from "../components/AddressCard";
 import AddressForm from "../components/AddressForm";
+import { useAuth } from "../context/authContext";
+import api from "../lib/api";
+import toast from "react-hot-toast";
 
 
 const Addresses = () => {
+
+  const {updateUser} = useAuth();
 
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  
+  // 1. FIX: Added the missing isSubmitting state here
+  const [isSubmitting, setIsSubmitting] = useState(false); 
+
   const [form, setForm] = useState({
     label: "",
     address: "",
@@ -36,8 +44,66 @@ const Addresses = () => {
     setEditingId(null)
   }
 
-  const handleSubmit = async (e: React.SubmitEvent) => {
+  const getLocation = (retries = 3): Promise<{lat: number; lng: number}> => {
+    return new Promise((resolve, reject) => {
+      if(!navigator.geolocation){
+        reject(new Error("Geolocation not supported"))
+        return;
+      }
+
+      const attempt = () => {
+        navigator.geolocation.getCurrentPosition(
+          (position)=> {
+            resolve({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            })
+          },
+          (error: any) => {
+            if(retries > 0 ){
+              retries--;
+              setTimeout(attempt, 1000)
+            } else{
+              reject(new Error(error.message || "Failed to get location after retries"))
+            }
+          },
+          {
+            enableHighAccuracy: false,
+            timeout: 15000,
+            maximumAge: 60000,
+          }
+        )
+      };
+      attempt()
+    })
+  }
+
+  // 2. FIX: Changed React.SubmitEvent to React.FormEvent<HTMLFormElement> for proper TypeScript support
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsSubmitting(true); // 3. FIX: Turn on spinner before starting the async process
+    
+    try {
+      const coords = await getLocation()
+      const payload = {...form, ...coords}
+
+      if(editingId){
+        const {data} = await api.put(`/addresses/${editingId}`, payload);
+        setAddresses(data.addresses)
+        updateUser({addresses: data.addresses})
+        toast.success("Address updated!")
+      } else {
+        const {data} = await api.post(`/addresses`, payload);
+        setAddresses(data.addresses)
+        updateUser({addresses: data.addresses})
+        toast.success("Address added!")
+      }
+      resetForm()
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || error.message || "Failed")
+    } finally {
+      setIsSubmitting(false); // 4. FIX: Turn off spinner when done (success or catch error)
+    }
   }
 
   const onEditHandler = (add: Address) => {
@@ -54,8 +120,13 @@ const Addresses = () => {
   }
 
   useEffect(() => {
-    setAddresses(dummyAddressData)
-    setTimeout(() => setLoading(false), 1000)
+    api.get('/addresses').then(({data}) => {
+      setAddresses(data.addresses)
+    }).catch((error: any) => {
+      toast.error(error.response?.data?.message || error.message )
+    }).finally(() => {
+      setLoading(false)
+    })
   }, [])
 
 
@@ -76,7 +147,8 @@ const Addresses = () => {
         </div>
 
         {/* form modal */}
-        {showForm && <AddressForm resetForm={resetForm}
+        {/* 5. FIX: 'isSubmitting' variable is now found, matching your AddressForm props */}
+        {showForm && <AddressForm resetForm={resetForm} isSubmitting={isSubmitting}
         handleSubmit={handleSubmit} form={form} setForm={setForm} editingId={editingId}/>}
 
         {/* addresses list */}
@@ -84,7 +156,7 @@ const Addresses = () => {
         {
           loading ? (
             <Loading/>
-          ) : addresses.length === 0 ? (
+          ) : (addresses || []).length === 0 ? (
             <div className="text-center py-16">
               <MapPinIcon className="size-16 text-app-border mx-auto mb-4"/>
               <h2 className="text-lg font-semibold text-app-green mb-2">No addresses saved</h2>
@@ -92,7 +164,7 @@ const Addresses = () => {
             </div>
           ) : ( 
             <div className="space-y-4">
-              {addresses.map((addr) => (
+              {addresses?.map((addr) => (
                 <AddressCard 
                 key={addr.id} 
                 addr={addr} 

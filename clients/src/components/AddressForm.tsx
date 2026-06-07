@@ -1,6 +1,7 @@
-import { XIcon } from "lucide-react"
+import { XIcon, Loader2 } from "lucide-react";
 
-const AddressForm = ({ resetForm, handleSubmit, form, setForm, editingId }: any) => {
+const AddressForm = ({ resetForm, handleSubmit, form, setForm, editingId, isSubmitting }: any) => {
+    
     return (
         <>
             {/* overlay */}
@@ -26,7 +27,7 @@ const AddressForm = ({ resetForm, handleSubmit, form, setForm, editingId }: any)
                     <div className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-app-green
-                    mb-1.5">Label</label>
+                    mb-1.5">Information about  your address in full details</label>
                             <input type="text" required
                                 placeholder="Home, Work, etc."
                                 className="w-full px-4 py-2.5 text-sm rounded-xl border border-app-border
@@ -103,11 +104,21 @@ const AddressForm = ({ resetForm, handleSubmit, form, setForm, editingId }: any)
                     </div>
 
 
-                    <button type="submit"
-                    className="mt-6 w-full py-3 bg-app-green text-white
-                    font-semibold rounded-xl hover:bg-app-green-light transition-colors"
+                   <button 
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="mt-6 w-full py-3 bg-app-green text-white font-semibold rounded-xl 
+                        hover:bg-app-green-light transition-colors flex items-center justify-center gap-2 
+                        disabled:opacity-75 disabled:cursor-not-allowed"
                     >
-                        {editingId ? "Update Address": "Save Address"}
+                        {isSubmitting ? (
+                            <>
+                                <Loader2 className="size-4 animate-spin" />
+                                {editingId ? "Updating Address..." : "Saving Address..."}
+                            </>
+                        ) : (
+                            editingId ? "Update Address" : "Save Address"
+                        )}
                     </button>
                 </form>
             </div>

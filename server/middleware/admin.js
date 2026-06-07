@@ -9,15 +9,14 @@ const admin = async (req, res, next) => {
         if (!user) {
             return res.status(401).json({ message: "User not found" });
         }
-        const adminEmails = process.env.ADMIN_EMAILS ? process.env.ADMIN_EMAILS.split(",").map(email => email.trim().toLowerCase()) : [];
+        const adminEmailEnv = process.env.ADMIN_EMAILS ?? process.env.ADMIM_EMAILS;
+        const adminEmails = adminEmailEnv ? adminEmailEnv.split(",").map(email => email.trim().toLowerCase()) : [];
         if (!adminEmails.includes(user.email.toLowerCase())) {
-            if (req.user)
-                req.user.isAdmin = true;
-            next();
+            return res.status(403).json({ message: "Access denied, admin only" });
         }
-        else {
-            res.status(403).json({ message: "Access denied, admin only" });
-        }
+        if (req.user)
+            req.user.isAdmin = true;
+        next();
     }
     catch (error) {
         console.error(error);

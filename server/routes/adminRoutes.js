@@ -7,6 +7,6 @@ adminRouter.get("/stats", auth, admin, getAdminStats);
 adminRouter.get("/delivery-partners", auth, admin, getDeliveryPartners);
 adminRouter.post("/delivery-partners", auth, admin, createDeliveryPartners);
 adminRouter.put("/delivery-partners/:id", auth, admin, updateDeliveryPartners);
-adminRouter.put("/delivery-partners/assign", auth, admin, assignDeliveryPartners);
+adminRouter.put("/orders/:id/assign", auth, admin, assignDeliveryPartners);
 export default adminRouter;
 //# sourceMappingURL=adminRoutes.js.map

@@ -30,15 +30,21 @@ export const getDeliveryPartners = async (req, res) => {
 };
 // create Delivery Partners  for admin
 export const createDeliveryPartners = async (req, res) => {
-    const [name, email, password, phone, vehicleType] = req.body;
+    const { name, email, password, phone, vehicleType } = req.body;
     if (!name || !email || !password || !phone) {
-        res.status(400).json({ message: "Please provide all required fields" });
+        return res.status(400).json({ message: "Please provide all required fields" });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const partner = await prisma.deliveryPartner.create({
-        data: { name, email: email.toLowerCase(), password: hashedPassword, phone, vehicleType }
+        data: {
+            name,
+            email: email.toLowerCase(),
+            password: hashedPassword,
+            phone,
+            vehicleType
+        }
     });
-    res.status(201).json({ partner });
+    return res.status(201).json({ partner });
 };
 // update delivery partner profile
 export const updateDeliveryPartners = async (req, res) => {
@@ -50,8 +56,7 @@ export const updateDeliveryPartners = async (req, res) => {
         data.phone = phone;
     if (vehicleType)
         data.vehicleType = vehicleType;
-    if (isActive)
-        data.isActive = isActive;
+    data.isActive = isActive;
     try {
         const partner = await prisma.deliveryPartner.update({
             where: { id: req.params.id },

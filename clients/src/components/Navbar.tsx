@@ -24,7 +24,6 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -44,7 +43,6 @@ const Navbar = () => {
     const handleResize = () => {
       if (window.innerWidth >= 768) {
         setMobileMenuOpen(false);
-        setSearchOpen(false);
       }
     };
     window.addEventListener("resize", handleResize);
@@ -56,7 +54,6 @@ const Navbar = () => {
     if (searchQuery.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery("");
-      setSearchOpen(false);
       setMobileMenuOpen(false);
     }
   };
@@ -74,8 +71,6 @@ const Navbar = () => {
 
   return (
     <>
-     
-
       <nav className="nb-root">
         <div className="nb-inner">
 
@@ -195,7 +190,7 @@ const Navbar = () => {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="nb-mobile-menu">
-            {/* Mobile Search (only shown on xs screens) */}
+            {/* Mobile Search */}
             <div className="nb-mobile-search">
               <form className="nb-search-form" onSubmit={handleSearch} style={{ width: "100%" }}>
                 <SearchIcon className="nb-search-icon" />

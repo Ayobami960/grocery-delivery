@@ -12,13 +12,14 @@ const admin = async (req: Request, res: Response, next: NextFunction) => {
             return res.status(401).json({ message: "User not found" })
         }
 
-        const adminEmails = process.env.ADMIN_EMAILS ? process.env.ADMIN_EMAILS.split(",").map(email => email.trim().toLowerCase()) : [];
+        const adminEmailEnv = process.env.ADMIN_EMAILS ?? process.env.ADMIM_EMAILS;
+        const adminEmails = adminEmailEnv ? adminEmailEnv.split(",").map(email => email.trim().toLowerCase()) : [];
         if (!adminEmails.includes(user.email.toLowerCase())) {
-            if (req.user) req.user.isAdmin = true;
-            next();
-        } else {
-            res.status(403).json({ message: "Access denied, admin only" })
+            return res.status(403).json({ message: "Access denied, admin only" })
         }
+
+        if (req.user) req.user.isAdmin = true;
+        next();
     } catch (error: any) {
         console.error(error);
         res.status(500).json({ message: "Admin verification failed", error: error.message })

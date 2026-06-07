@@ -8,6 +8,6 @@ deliveryPatnerRouter.get('/my-deliveries/:id', deliveryAuth, getMyDeliveriesDeta
 deliveryPatnerRouter.put('/my-deliveries/:id/complete', deliveryAuth, completeDelivery);
 deliveryPatnerRouter.put('/my-deliveries/:id/cancel', deliveryAuth, cancelDelivery);
 deliveryPatnerRouter.put('/my-deliveries/:id/status', deliveryAuth, updateDeliveryStatus);
-deliveryPatnerRouter.put('/my-deliveries/:id/locaton', deliveryAuth, updateLocation);
+deliveryPatnerRouter.put('/my-deliveries/:id/location', deliveryAuth, updateLocation);
 export default deliveryPatnerRouter;
 //# sourceMappingURL=deliveryPartnerRoutes.js.map

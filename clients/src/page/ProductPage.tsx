@@ -2,11 +2,11 @@ import { Link, useNavigate, useParams } from "react-router";
 import { useCart } from "../context/CartContext";
 import { useEffect, useState } from "react";
 import type { Product } from "../types";
-import { dummyProducts } from "../assets/assets";
 import Loading from "../components/Loading";
 import { ArrowLeftIcon, ArrowRight, HomeIcon, LeafIcon, MinusIcon, PlusIcon, ShoppingCartIcon, StarIcon } from "lucide-react";
 import DummyReviewsSection from "../assets/DummyReviewsSection";
 import ProductCard from "../components/Home/ProductCard";
+import api from "../lib/api";
 
 const ProductPage = () => {
   const currency = import.meta.env.VITE_CURRENCY_SYMBOL || "$";
@@ -20,14 +20,25 @@ const ProductPage = () => {
   const [localQuantity, setLocalQuantity] = useState(1)
 
   useEffect(() => {
-    setLoading(true)
-    setLocalQuantity(1);
-    window.scrollTo(0, 0)
-    const product = dummyProducts.find((p) => p.id === id)
-    setProduct(product!)
-    setRelatedProducts(dummyProducts.filter((p) => p.id !== id))
-    setLoading(false)
-  }, [id, navigate])
+  setLoading(true)
+  setLocalQuantity(1);
+  window.scrollTo(0, 0)
+  
+  api.get(`/products/${id}`)
+    .then(({ data }) => {
+      setProduct(data); 
+      return api.get(`/products?category=${data.category}`)
+    })
+    .then(({ data }) => {
+      setRelatedProducts(data.products.filter((p: Product) => p.id !== id))
+    })
+    .catch((err) => {
+      console.error(err); 
+      navigate("/products")
+    })
+    .finally(() => setLoading(false));
+
+}, [id, navigate])
 
   if (loading) return <Loading />
   if (!product) return null;

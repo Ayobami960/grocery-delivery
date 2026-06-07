@@ -65,7 +65,7 @@ export const updateProduct = async (req, res) => {
 };
 // DELETE /api/products/:id
 export const deleteProduct = async (req, res) => {
-    await prisma.product.delete({ where: { id: req.params.id } });
-    res.json({ message: "Product deleted successfully" });
+    await prisma.product.update({ where: { id: req.params.id }, data: { stock: 0 } });
+    res.json({ message: "Product marked as out of stock" });
 };
 //# sourceMappingURL=productController.js.map

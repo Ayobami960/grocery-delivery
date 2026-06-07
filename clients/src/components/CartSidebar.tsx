@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router";
 import { useCart } from "../context/CartContext";
-import { ArrowRightIcon, MinusIcon, PlusIcon, ShoppingBagIcon, Trash2, Trash2Icon, XIcon } from "lucide-react";
+import { ArrowRightIcon, MinusIcon, PlusIcon, ShoppingBagIcon,  Trash2Icon, XIcon } from "lucide-react";
 
 const CartSidebar = () => {
     const currency = import.meta.env.VITE_CURRENCY_SYMBOL || "$";

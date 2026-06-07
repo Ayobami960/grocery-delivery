@@ -43,19 +43,26 @@ export const getDeliveryPartners = async (req: Request, res: Response) => {
 
 // create Delivery Partners  for admin
 export const createDeliveryPartners = async (req: Request, res: Response) => {
-    const [name, email, password, phone, vehicleType] = req.body;
+    const { name, email, password, phone, vehicleType } = req.body;
+
 
     if (!name || !email || !password || !phone) {
-        res.status(400).json({ message: "Please provide all required fields" })
+        return res.status(400).json({ message: "Please provide all required fields" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10)
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const partner = await prisma.deliveryPartner.create({
-        data: { name, email: email.toLowerCase(), password: hashedPassword, phone, vehicleType }
-    })
+        data: {
+            name,
+            email: email.toLowerCase(),
+            password: hashedPassword,
+            phone,
+            vehicleType
+        }
+    });
 
-    res.status(201).json({ partner })
+    return res.status(201).json({ partner });
 }
 
 // update delivery partner profile
@@ -65,7 +72,7 @@ export const updateDeliveryPartners = async (req: Request, res: Response) => {
     if (name) data.name = name;
     if (phone) data.phone = phone;
     if (vehicleType) data.vehicleType = vehicleType;
-    if (isActive) data.isActive = isActive;
+    data.isActive = isActive;
 
     try {
         const partner = await prisma.deliveryPartner.update({
@@ -74,7 +81,7 @@ export const updateDeliveryPartners = async (req: Request, res: Response) => {
         })
         res.json({ partner })
     } catch (error) {
-        res.status(404).json({message: "Partner not found"})
+        res.status(404).json({ message: "Partner not found" })
     }
 
 }
