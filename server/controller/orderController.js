@@ -1,10 +1,10 @@
 import { prisma } from "../config/db.js";
 import { inngest } from "../inngest/index.js";
+import Stripe from "stripe";
 // create order
 // POST /api/orders
 export const createOrder = async (req, res) => {
     const { items, shippingAddress, paymentMethod } = req.body;
-    // check if order items are empty
     if (!items || items.length === 0) {
         return res.status(400).json({ message: "No order items" });
     }
@@ -13,10 +13,9 @@ export const createOrder = async (req, res) => {
     const products = await prisma.product.findMany({ where: { id: { in: productIds } } });
     const productMap = {};
     products.forEach((p) => (productMap[p.id] = p));
-    // check if product is in stock
+    // Check stock availability
     for (const item of items) {
         const product = productMap[item.product];
-        // Fix: Use '?? 0' to safely handle if product.stock is null
         if (!product || (product.stock ?? 0) < item.quantity) {
             return res.status(400).json({
                 message: !product
@@ -38,8 +37,7 @@ export const createOrder = async (req, res) => {
             unit: dbProduct.unit
         };
     });
-    const subtotal = orderItems.reduce((sum, item) => sum +
-        item.price * item.quantity, 0);
+    const subtotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const deliveryFee = subtotal > 20 ? 0 : 1.99;
     const tax = Math.round(subtotal * 0.08 * 100) / 100;
     const total = Math.round((subtotal + deliveryFee + tax) * 100) / 100;
@@ -56,30 +54,59 @@ export const createOrder = async (req, res) => {
             statusHistory: [{ status: "Placed", note: "Order placed successfully", timestamp: new Date() }]
         }
     });
+    // ─── Card payment ────────────────────────────────────────────────────────
+    // ✅ FIX 1: For card payments we only create the Stripe session and return
+    // the checkout URL. Stock decrement and Inngest events are intentionally
+    // NOT done here — they must happen inside the Stripe webhook
+    // (checkout.session.completed) AFTER payment is confirmed, so that stock
+    // is never decremented for abandoned/failed checkouts.
     if (paymentMethod === "card") {
-        // stripe payment link
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+        const session = await stripe.checkout.sessions.create({
+            success_url: `${req.headers.origin}/orders?clearCart=true`,
+            cancel_url: `${req.headers.origin}/checkout`,
+            line_items: [
+                {
+                    price_data: {
+                        currency: "usd",
+                        product_data: {
+                            name: "Grocery Delivery Order",
+                        },
+                        unit_amount: Math.round(total * 100),
+                    },
+                    quantity: 1,
+                },
+            ],
+            mode: "payment",
+            metadata: { orderId: order.id }
+        });
+        return res.json({ url: session.url });
     }
-    res.json({ order });
-    //decrease stock
+    // ─── Cash payment ────────────────────────────────────────────────────────
+    // ✅ FIX 2: For cash orders, decrement stock and fire Inngest events BEFORE
+    // sending the response. Previously the response was sent first and the DB
+    // updates ran afterward — if any update failed the client would never know,
+    // and the response was already gone.
     for (const item of orderItems) {
         await prisma.product.update({
             where: { id: item.product },
             data: { stock: { decrement: item.quantity } }
         });
     }
-    // send stock update events for each product in the order
     for (const item of orderItems) {
         await inngest.send({ name: "inventory/stock.updated", data: { productId: item.product } });
     }
     await inngest.send({ name: "order/placed", data: { orderId: order.id } });
+    // ✅ Response is sent only after all DB work is complete
+    res.json({ order });
 };
-// GET  user`s order
+// GET user's orders
 // GET /api/orders
 export const getUserOrders = async (req, res) => {
     const { status } = req.query;
     const where = {
         userId: req.user.id,
-        NOT: [{ paymentMethod: "card", isPaid: false }] // Fixed lowercase naming bug here too
+        NOT: [{ paymentMethod: "card", isPaid: false }]
     };
     if (status && status !== "all") {
         where.status = status;
@@ -120,8 +147,9 @@ export const updateOrderStatus = async (req, res) => {
     }
     const history = (Array.isArray(order.statusHistory) ? order.statusHistory : []);
     history.push({
-        status, note: note || `Order ${status.toLowerCase()}`,
-        timestamp: new Date() // Standardized casing to lowercase timestamp matching creation
+        status,
+        note: note || `Order ${status.toLowerCase()}`,
+        timestamp: new Date()
     });
     const updatedOrder = await prisma.order.update({
         where: { id: req.params.id },

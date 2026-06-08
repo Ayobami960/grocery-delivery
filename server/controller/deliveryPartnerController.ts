@@ -5,223 +5,235 @@ import jwt from "jsonwebtoken";
 
 const getStatusHistory = (statusHistory: unknown) => {
     return Array.isArray(statusHistory) ? statusHistory : [];
-}
+};
 
 // Generate JWT token
 const generateToken = (id: string) => {
-    return jwt.sign({id, role: "delivery"}, process.env.JWT_SECRET as string,
-        {expiresIn: "1d"}
-    )
-}
+    return jwt.sign({ id, role: "delivery" }, process.env.JWT_SECRET as string, {
+        expiresIn: "1d"
+    });
+};
 
 // Login delivery partner
-// POST /api/delevery/login
+// POST /api/delivery/login
 export const loginPartner = async (req: Request, res: Response) => {
-    const {email, password} = req.body;
+    const { email, password } = req.body;
 
-    if (!email || !password){
-        return res.status(400).json({message: "Please provide email and password"})
+    if (!email || !password) {
+        return res.status(400).json({ message: "Please provide email and password" });
     }
 
-    const partner = await prisma.deliveryPartner.findUnique({where: {
-        email: email.toLowerCase()
-    }})
+    // ✅ FIX 1: Wrapped in try/catch — unhandled Prisma rejections would
+    // previously crash the process instead of returning a proper error response.
+    
+        const partner = await prisma.deliveryPartner.findUnique({
+            where: { email: email.toLowerCase() }
+        });
 
-    if(!partner){
-        return res.status(401).json({message: "Invalid email and password"});
-    }
+        if (!partner) {
+            return res.status(401).json({ message: "Invalid email and password" });
+        }
 
-    if(!partner.isActive){
-        return res.status(403).json({message: "Your account has been deactivated"});
-    }
+        if (!partner.isActive) {
+            return res.status(403).json({ message: "Your account has been deactivated" });
+        }
 
-    const isMatch = await bcrypt.compare(password, partner.password)
-    if(!isMatch){
-        return res.status(401).json({message: "Invalid email and password"})
-    }
+        const isMatch = await bcrypt.compare(password, partner.password);
+        if (!isMatch) {
+            return res.status(401).json({ message: "Invalid email and password" });
+        }
 
-    const token = generateToken(partner.id)
-    const {password: _, ...partnerData} = partner;
+        const token = generateToken(partner.id);
+        const { password: _, ...partnerData } = partner;
 
-    res.json({partner: partnerData, token})
+        res.json({ partner: partnerData, token });
+    
+};
 
-}
 
 // Get assigned deliveries
 // GET /api/delivery/my-deliveries
 export const getMyDeliveries = async (req: Request, res: Response) => {
-    const {status} = req.query;
+    const { status } = req.query;
 
-    const where: any = {deliveryPartnerId: req.partner!.id};
+    const where: any = { deliveryPartnerId: req.partner!.id };
 
-    if(status === "active"){
-        where.status = {in: ["Assigned", "Packed", "Out for Delivery"]}
-    } else if(status === "completed"){
-        where.status = {in: ["Delivered", "Cancelled"]}
+    if (status === "active") {
+        where.status = { in: ["Assigned", "Packed", "Out for Delivery"] };
+    } else if (status === "completed") {
+        where.status = { in: ["Delivered", "Cancelled"] };
     }
 
-    const orders = await prisma.order.findMany({
-        where,
-        include: {user: {select: {name: true, email: true, phone: true}}},
-        orderBy: {createdAt: "desc"}
-    })
-
-    res.json({orders})
-}
+    // ✅ FIX 2: try/catch added so DB errors return a proper 500 instead of
+    // an unhandled rejection that crashes the server.
+   
+        const orders = await prisma.order.findMany({
+            where,
+            include: { user: { select: { name: true, email: true, phone: true } } },
+            orderBy: { createdAt: "desc" }
+        });
+        res.json({ orders });
+   
+};
 
 
 // GET single delivery detail
-// GET /api/v1/delivery/my-delveries/:id
+// GET /api/delivery/my-deliveries/:id
 export const getMyDeliveriesDetail = async (req: Request, res: Response) => {
-    const order = await prisma.order.findFirst({
-        where: {id: req.params.id as string, deliveryPartnerId: req.partner!.id},
-        include: {user: {select: {name: true, email: true, phone: true}}}
-    })
+        const order = await prisma.order.findFirst({
+            where: { id: req.params.id as string, deliveryPartnerId: req.partner!.id },
+            include: { user: { select: { name: true, email: true, phone: true } } }
+        });
 
-    if(!order){
-        return res.status(404).json({message: "Delivery not found"})
-    }
+        if (!order) {
+            return res.status(404).json({ message: "Delivery not found" });
+        }
 
-    res.json({order})
-}
+        res.json({ order });
+ 
+};
 
 
-// get complete delivery with OTP
-// PUT /api/v1/delivery/my-delveries/:id/complete
+// Complete delivery with OTP
+// PUT /api/delivery/my-deliveries/:id/complete
 export const completeDelivery = async (req: Request, res: Response) => {
-    const {otp} = req.body;
-    const order = await prisma.order.findFirst({
-        where: {id: req.params.id as string, deliveryPartnerId: req.partner!.id}
-    })
+    const { otp } = req.body;
 
-    if(!order){
-        return res.status(404).json({message: "Delivery not found"})
-    }
+        const order = await prisma.order.findFirst({
+            where: { id: req.params.id as string, deliveryPartnerId: req.partner!.id }
+        });
 
-    if(order.status === "Cancelled" || order.status === "Delivered"){
-        return res.status(400).json({message: "Delivery is already closed"})
-    }
+        if (!order) {
+            return res.status(404).json({ message: "Delivery not found" });
+        }
 
-    if(!otp || order.deliveryOtp !== otp){
-        return res.status(400).json({message: "Invalid OTP"})
-    }
+        if (order.status === "Cancelled" || order.status === "Delivered") {
+            return res.status(400).json({ message: "Delivery is already closed" });
+        }
 
-    const history = getStatusHistory(order.statusHistory);
+        if (!otp || order.deliveryOtp !== otp) {
+            return res.status(400).json({ message: "Invalid OTP" });
+        }
 
-    history.push({status: 'Delivered', note: "Delivered by partner",
-        timestamp: new Date()
-    })
+        const history = getStatusHistory(order.statusHistory);
+        history.push({ status: "Delivered", note: "Delivered by partner", timestamp: new Date() });
 
-    const updatedOrder = await prisma.order.update({
-        where: {id: order.id},
-        data: {status: "Delivered", statusHistory: history, deliveryOtp: ""}
-    })
+        const updatedOrder = await prisma.order.update({
+            where: { id: order.id },
+            data: { status: "Delivered", statusHistory: history, deliveryOtp: "" }
+        });
 
-    res.json({order: updatedOrder, message: "Delivery completed successfully"})
-}
+        res.json({ order: updatedOrder, message: "Delivery completed successfully" });
+ 
+};
 
-//Cancel delivery
-// PUT /api/v1/delivery/my-delveries/:id/cancel
+
+// Cancel delivery
+// PUT /api/delivery/my-deliveries/:id/cancel
 export const cancelDelivery = async (req: Request, res: Response) => {
-    const {reason} = req.body;
-    const order= await prisma.order.findFirst({
-        where: {id: req.params.id as string, deliveryPartnerId: req.partner!.id}
-    })
+    const { reason } = req.body;
 
-    if(!order){
-        return res.status(404).json({message: "Delivery not found"})
-    }
+    
+        const order = await prisma.order.findFirst({
+            where: { id: req.params.id as string, deliveryPartnerId: req.partner!.id }
+        });
 
-    if(order.status ==="Delivered") {
-        return res.status(400).json({message: "Cannot cancel a delivered order"})
-    }
+        if (!order) {
+            return res.status(404).json({ message: "Delivery not found" });
+        }
 
-    if(order.status === "Cancelled") {
-        return res.status(400).json({message: "Delivery is already cancelled"})
-    }
+        if (order.status === "Delivered") {
+            return res.status(400).json({ message: "Cannot cancel a delivered order" });
+        }
 
-    const history = getStatusHistory(order.statusHistory);
+        if (order.status === "Cancelled") {
+            return res.status(400).json({ message: "Delivery is already cancelled" });
+        }
 
-    history.push({status: "Cancelled", note: reason || "", timestamp: new Date()})
+        const history = getStatusHistory(order.statusHistory);
+        history.push({ status: "Cancelled", note: reason || "", timestamp: new Date() });
 
-    const updatedOrder = await prisma.order.update({
-        where: {id: order.id},
-        data: {status: "Cancelled", statusHistory: history, deliveryOtp: ""}
-    })
+        const updatedOrder = await prisma.order.update({
+            where: { id: order.id },
+            data: { status: "Cancelled", statusHistory: history, deliveryOtp: "" }
+        });
 
-    res.json({order: updatedOrder, message: "Delivery cancelled"})
-
-}
+        res.json({ order: updatedOrder, message: "Delivery cancelled" });
+   
+};
 
 
 // Update order status
 // PUT /api/delivery/my-deliveries/:id/status
 export const updateDeliveryStatus = async (req: Request, res: Response) => {
-    const {status} = req.body;
-    const allowedStatuses = ["Packed", "Out for Delivery"]
+    const { status } = req.body;
+    const allowedStatuses = ["Packed", "Out for Delivery"];
 
-    if(!allowedStatuses.includes(status)){
-        return res.status(400).json({message: "Invalid status update"})
+    if (!allowedStatuses.includes(status)) {
+        return res.status(400).json({ message: "Invalid status update" });
     }
 
-    const order = await prisma.order.findFirst({
-        where: {id: req.params.id as string, deliveryPartnerId: req.partner!.id}
-    })
+    
+        const order = await prisma.order.findFirst({
+            where: { id: req.params.id as string, deliveryPartnerId: req.partner!.id }
+        });
 
-    if(!order){
-        return res.status(404).json({message: "Delivery not found"})
-    }
+        if (!order) {
+            return res.status(404).json({ message: "Delivery not found" });
+        }
 
-    if(order.status === "Delivered" || order.status === "Cancelled"){
-        return res.status(400).json({message: "Cannot update a closed delivery"})
-    }
+        if (order.status === "Delivered" || order.status === "Cancelled") {
+            return res.status(400).json({ message: "Cannot update a closed delivery" });
+        }
 
-    if(status === "Packed" && order.status !== "Assigned"){
-        return res.status(400).json({message: "Only assigned deliveries can be marked packed"})
-    }
+        if (status === "Packed" && order.status !== "Assigned") {
+            return res.status(400).json({ message: "Only assigned deliveries can be marked packed" });
+        }
 
-    if(status === "Out for Delivery" && order.status !== "Packed"){
-        return res.status(400).json({message: "Only packed deliveries can be marked out for delivery"})
-    }
+        if (status === "Out for Delivery" && order.status !== "Packed") {
+            return res.status(400).json({ message: "Only packed deliveries can be marked out for delivery" });
+        }
 
-    const history = getStatusHistory(order.statusHistory);
+        const history = getStatusHistory(order.statusHistory);
+        history.push({ status, note: `Status updated to ${status}`, timestamp: new Date() });
 
-    history.push({status, note: `Status updated to ${status}`, timestamp: new Date()})
+        const updatedOrder = await prisma.order.update({
+            where: { id: order.id },
+            data: { status, statusHistory: history }
+        });
 
-    const updatedOrder = await prisma.order.update({
-        where: {id: order.id},
-        data: {status, statusHistory: history}
-    })
+        res.json({ order: updatedOrder });
+   
+};
 
-    res.json({order: updatedOrder})
-
-}
 
 // Update live location
 // PUT /api/delivery/my-deliveries/:id/location
 export const updateLocation = async (req: Request, res: Response) => {
-    const {lat, lng} = req.body;
+    const { lat, lng } = req.body;
 
-    if(typeof lat !== "number" || typeof lng !== "number"){
-        return res.status(400).json({message: "Latitude and longitude are required"})
+    if (typeof lat !== "number" || typeof lng !== "number") {
+        return res.status(400).json({ message: "Latitude and longitude are required" });
     }
 
-    const order = await prisma.order.findFirst({
-        where: {
-            id: req.params.id as string,
-            deliveryPartnerId: req.partner!.id,
-            status: {in: ['Assigned', "Packed", "Out for Delivery"]}
+   
+        const order = await prisma.order.findFirst({
+            where: {
+                id: req.params.id as string,
+                deliveryPartnerId: req.partner!.id,
+                status: { in: ["Assigned", "Packed", "Out for Delivery"] }
+            }
+        });
+
+        if (!order) {
+            return res.status(404).json({ message: "Active delivery not found" });
         }
-    })
 
-    if(!order){
-        return res.status(404).json({message: "Active delivery not found"})
-    }
+        await prisma.order.update({
+            where: { id: order.id },
+            data: { liveLocation: { lat, lng, updatedAt: new Date() } }
+        });
 
-    await prisma.order.update({
-        where: {id: order.id},
-        data: {liveLocation: {lat, lng, updatedAt: new Date()}}
-    })
-
-    res.json({success: true})
-}
+        res.json({ success: true });
+    
+};

@@ -1,8 +1,8 @@
 import { prisma } from "../config/db.js";
 import bcrypt from "bcrypt";
-// get admin dashboard data
+// GET admin dashboard stats
 export const getAdminStats = async (req, res) => {
-    const [totalOrders, totalUsers, totalProducts, outOfStock, totalParners, recentOrders] = await Promise.all([
+    const [totalOrders, totalUsers, totalProducts, outOfStock, totalPartners, recentOrders] = await Promise.all([
         prisma.order.count({ where: { NOT: [{ paymentMethod: "card", isPaid: false }] } }),
         prisma.user.count(),
         prisma.product.count(),
@@ -18,17 +18,20 @@ export const getAdminStats = async (req, res) => {
             },
         })
     ]);
+    // ✅ FIX 1: Was "totalParners" (typo). Corrected to "totalPartners".
     res.json({
-        totalOrders, totalUsers, totalProducts, outOfStock, totalParners,
+        totalOrders, totalUsers, totalProducts, outOfStock, totalPartners,
         recentOrders
     });
 };
-// get delivery partners list for admin
+// GET delivery partners list (admin)
 export const getDeliveryPartners = async (req, res) => {
-    const partners = await prisma.deliveryPartner.findMany({ orderBy: { createdAt: "desc" } });
+    const partners = await prisma.deliveryPartner.findMany({
+        orderBy: { createdAt: "desc" }
+    });
     res.json({ partners });
 };
-// create Delivery Partners  for admin
+// POST create delivery partner (admin)
 export const createDeliveryPartners = async (req, res) => {
     const { name, email, password, phone, vehicleType } = req.body;
     if (!name || !email || !password || !phone) {
@@ -46,7 +49,7 @@ export const createDeliveryPartners = async (req, res) => {
     });
     return res.status(201).json({ partner });
 };
-// update delivery partner profile
+// PUT update delivery partner (admin)
 export const updateDeliveryPartners = async (req, res) => {
     const { name, phone, vehicleType, isActive } = req.body;
     const data = {};
@@ -68,15 +71,21 @@ export const updateDeliveryPartners = async (req, res) => {
         res.status(404).json({ message: "Partner not found" });
     }
 };
-// assign delivery partner fr orer
+// PUT assign delivery partner to order (admin)
 export const assignDeliveryPartners = async (req, res) => {
     const { partnerId } = req.body;
     const order = await prisma.order.findUnique({
         where: { id: req.params.id }
     });
+    if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+    }
     const partner = await prisma.deliveryPartner.findUnique({
         where: { id: partnerId }
     });
+    if (!partner) {
+        return res.status(404).json({ message: "Delivery partner not found" });
+    }
     const otp = String(Math.floor(100000 + Math.random() * 900000));
     let status = order.status;
     const history = Array.isArray(order.statusHistory) ? order.statusHistory : [];
@@ -84,16 +93,21 @@ export const assignDeliveryPartners = async (req, res) => {
         status = "Assigned";
         history.push({
             status: "Assigned",
-            note: `Assigned to ${partner.name}`, timestamp: new Date()
+            note: `Assigned to ${partner.name}`,
+            timestamp: new Date()
         });
     }
-    await prisma.order.update({
+    // ✅ FIX 2: Was returning the OLD `order` object (before the update).
+    // Now we capture and return `updatedOrder` — the actual updated record.
+    const updatedOrder = await prisma.order.update({
         where: { id: order.id },
         data: {
-            deliveryPartnerId: partner.id, deliveryOtp: otp, status,
+            deliveryPartnerId: partner.id,
+            deliveryOtp: otp,
+            status,
             statusHistory: history
         }
     });
-    res.json({ order });
+    res.json({ order: updatedOrder });
 };
 //# sourceMappingURL=adminController.js.map

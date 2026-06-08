@@ -31,9 +31,10 @@ const Product = () => {
       if(category) params.set('category', category)
       if(organic) params.set('organic', organic)
       if(sort) params.set('sort', sort)
+      if(minPrice) params.set('minPrice', minPrice)
       if(maxPrice) params.set('maxPrice', maxPrice)
 
-        params.set("page", String(page))
+        params.set("page", page || "1")
         params.set("limit", "12")
 
         const {data} = await api.get(`/products?${params.toString()}`);
@@ -131,8 +132,8 @@ const Product = () => {
                   focus:border-app-green outline-none cursor-pointer"
                     onChange={(e) => updateFilter("sort", e.target.value)}>
                     <option value="">Newest</option>
-                    <option value="price_asc">Price: Low to High</option>
-                    <option value="price_dec">Price: High to Low</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
                     <option value="rating">Top Rated</option>
                     <option value="name">A to Z</option>
 
@@ -228,5 +229,4 @@ const Product = () => {
 }
 
 export default Product
-
 

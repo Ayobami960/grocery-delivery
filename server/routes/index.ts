@@ -6,6 +6,7 @@ import orderRouter from "./orderRoutes.js";
 import addressRouter from "./addressRoutes.js";
 import adminRouter from "./adminRoutes.js";
 import deliveryPatnerRouter from "./deliveryPartnerRoutes.js";
+import { prisma } from "../config/db.js";
 
 const router = express.Router();
 
@@ -16,6 +17,11 @@ router.use("/orders", orderRouter);
 router.use("/delivery", deliveryPatnerRouter);
 router.use("/addresses", addressRouter);
 router.use("/admin", adminRouter);
+
+router.get("/health/db", async (req, res) => {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ ok: true });
+});
 
 
 
