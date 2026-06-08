@@ -14,7 +14,7 @@ const Newsletter = () => {
 
                 <form 
                 onSubmit={(e) => e.preventDefault()}
-                action="" className="flex flex-colsm:flex-row gap-3 max-w-md mx-auto">
+                action="" className="flex flex-col md:flex-row gap-3 max-w-md mx-auto mt-4 md:mt-0">
                     <input type="email" placeholder="Enter your email address" required
                     className="flex-1 px-5 py-3.5 rounded-xl border border-app-border
                     focus:border-app-green focus:ring bg-whitetext-sm transition-all" />
