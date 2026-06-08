@@ -22,10 +22,8 @@ app.use((error, req, res, next) => {
     res.status(500).json({ message: error?.message || "Internal server error" });
 });
 server.listen(port, async () => {
-    // ✅ prisma is imported HERE, after dotenv has fully loaded
-    const { prisma } = await import("./config/db.js");
+    const { prisma } = await import("./config/db.js"); // ← after dotenv is ready
     console.log(`Server running at http://localhost:${port}`);
-    console.log("ENV check:", !!process.env.DATABASE_URL);
     try {
         await prisma.$queryRaw `SELECT 1`;
         console.log("✅ Database connected successfully");
