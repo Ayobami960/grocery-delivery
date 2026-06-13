@@ -49,7 +49,7 @@ const Login = () => {
                 </div>
             </div>
 
-            <div className="flex-1 flex-center px- py-12 bg-app-cream">
+            <div className="flex-1 flex-center px-4 py-12 bg-app-cream">
                 <div className="w-full max-w-md">
                     <div className="text-center mb-8">
                         <Link to="/" className="inline-flex items-center gap-2 mb-6">
@@ -73,7 +73,7 @@ const Login = () => {
                         </p>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-5">
+                    <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-8 space-y-5">
                         {!isLoginState && (
                             <label className="text-sm flex flex-col gap-1">
                                 Name
